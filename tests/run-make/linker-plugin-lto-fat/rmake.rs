@@ -16,7 +16,8 @@ fn main() {
         .lto("fat")
         .linker_plugin_lto("on")
         .link_arg("ir.bc")
-        .arg("-Zlinker-features=+lld")
+        .arg("-Zunstable-options")
+        .arg("-Clinker-features=+lld")
         .run();
 
     llvm_objdump()

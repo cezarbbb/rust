@@ -35,6 +35,7 @@ fn main() {
 fn test_lto(fat_lto: bool) {
     let lto = if fat_lto { "fat" } else { "thin" };
     let clang_lto = if fat_lto { "full" } else { "thin" };
+    println!("Running {lto} lto");
 
     rustc()
         .lto(lto)
@@ -52,20 +53,25 @@ fn test_lto(fat_lto: bool) {
         .input("cmain.c")
         .arg("-O3")
         .run();
+
+    let dump = llvm_objdump().disassemble().input("cmain").run();
     // Make sure we don't find a call instruction to the function we expect to
     // always be inlined.
-    llvm_objdump()
-        .disassemble()
-        .input("cmain")
-        .run()
-        .assert_stdout_not_contains_regex(RUST_ALWAYS_INLINED_PATTERN);
+    dump.assert_stdout_not_contains_regex(RUST_ALWAYS_INLINED_PATTERN);
     // As a sanity check, make sure we do find a call instruction to a
     // non-inlined function
-    llvm_objdump()
-        .disassemble()
-        .input("cmain")
-        .run()
-        .assert_stdout_contains_regex(RUST_NEVER_INLINED_PATTERN);
+    #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+    dump.assert_stdout_contains_regex(RUST_NEVER_INLINED_PATTERN);
+    #[cfg(any(target_arch = "aarch64", target_arch = "arm"))]
+    {
+        if !fat_lto {
+            dump.assert_stdout_contains_regex(RUST_NEVER_INLINED_PATTERN);
+        } else {
+            // fat lto inlines this anyway
+            dump.assert_stdout_not_contains_regex(RUST_NEVER_INLINED_PATTERN);
+        }
+    }
+
     clang().input("clib.c").lto(clang_lto).arg("-c").out_exe("clib.o").arg("-O2").run();
     llvm_ar().obj_to_ar().output_input(static_lib_name("xyz"), "clib.o").run();
     rustc()
@@ -77,13 +83,9 @@ fn test_lto(fat_lto: bool) {
         .input("main.rs")
         .output("rsmain")
         .run();
-    llvm_objdump()
-        .disassemble()
-        .input("rsmain")
-        .run()
-        .assert_stdout_not_contains_regex(C_ALWAYS_INLINED_PATTERN);
 
     let dump = llvm_objdump().disassemble().input("rsmain").run();
+    dump.assert_stdout_not_contains_regex(C_ALWAYS_INLINED_PATTERN);
     if !fat_lto {
         dump.assert_stdout_contains_regex(C_NEVER_INLINED_PATTERN);
     } else {
