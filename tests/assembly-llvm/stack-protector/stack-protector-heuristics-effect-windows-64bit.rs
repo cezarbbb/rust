@@ -280,10 +280,6 @@ pub fn local_large_var_cloned(f: fn(Gigastruct)) {
     // ```
 
     // all: __security_check_cookie
-    
-    // FIXME: How does the rust compiler handle moves of large structures?
-    // rusty-NOT: __security_check_cookie
-    
     // strong: __security_check_cookie
     // basic: __security_check_cookie
     // none-NOT: __security_check_cookie
@@ -322,14 +318,8 @@ extern "C" {
 #[no_mangle]
 pub fn alloca_small_compile_time_constant_arg(f: fn(*mut ())) {
     f(unsafe { alloca(8) });
- 
+
     // all: __security_check_cookie
-
-    // FIXME: Rusty thinks a function that returns a mutable raw pointer may
-    // be a stack memory allocation function, so it performs stack smash protection.
-    // Is it possible to optimize the heuristics?
-    // rusty: __security_check_cookie
-
     // strong-NOT: __security_check_cookie
     // basic-NOT: __security_check_cookie
     // none-NOT: __security_check_cookie
@@ -386,10 +376,10 @@ pub fn unsized_fn_param(s: [u8], l: bool, f: fn([u8])) {
     // LLVM does not support generating stack protectors in functions with funclet
     // based EH personalities.
     // https://github.com/llvm/llvm-project/blob/37fd3c96b917096d8a550038f6e61cdf0fc4174f/llvm/lib/CodeGen/StackProtector.cpp#L103C1-L109C4
-
     // all-NOT: __security_check_cookie
     // rusty-NOT: __security_check_cookie
     // strong-NOT: __security_check_cookie
+
     // basic-NOT: __security_check_cookie
     // none-NOT: __security_check_cookie
     // missing-NOT: __security_check_cookie
