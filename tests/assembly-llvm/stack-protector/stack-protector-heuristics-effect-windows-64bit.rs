@@ -280,6 +280,10 @@ pub fn local_large_var_cloned(f: fn(Gigastruct)) {
     // ```
 
     // all: __security_check_cookie
+    
+    // FIXME: How does the rust compiler handle moves of large structures?
+    // rusty-NOT: __security_check_cookie
+    
     // strong: __security_check_cookie
     // basic: __security_check_cookie
     // none-NOT: __security_check_cookie
@@ -318,8 +322,14 @@ extern "C" {
 #[no_mangle]
 pub fn alloca_small_compile_time_constant_arg(f: fn(*mut ())) {
     f(unsafe { alloca(8) });
-
+ 
     // all: __security_check_cookie
+
+    // FIXME: Rusty thinks a function that returns a mutable raw pointer may
+    // be a stack memory allocation function, so it performs stack smash protection.
+    // Is it possible to optimize the heuristics?
+    // rusty: __security_check_cookie
+
     // strong-NOT: __security_check_cookie
     // basic-NOT: __security_check_cookie
     // none-NOT: __security_check_cookie
