@@ -43,7 +43,7 @@ impl<'tcx> crate::MirPass<'tcx> for StackProtectorFinder {
             let instance = Instance::mono(tcx, def_id);
             let Ok(fn_abi) = tcx.fn_abi_of_instance(ty::TypingEnv::fully_monomorphized().as_query_input((instance, ty::List::empty())),)
             else { 
-                // FIXME: Finding when an Err() message is returned
+                // FIXME: Find when an Err() message is returned
                 return; 
             };
 
