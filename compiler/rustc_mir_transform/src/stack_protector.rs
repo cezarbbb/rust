@@ -55,7 +55,7 @@ impl<'tcx> crate::MirPass<'tcx> for StackProtectorFinder {
             // }
 
             let ret = &fn_abi.ret;
-            if matches!(&ret.mode, PassMode::Indirect { attrs: _, meta_attrs: _, on_stack: false }) {
+            if matches!(&ret.mode, PassMode::Indirect { attrs: _, meta_attrs: _, on_stack: false}) {
                 tcx.stack_protector.borrow_mut().insert(def_id);
                 return;
             }
