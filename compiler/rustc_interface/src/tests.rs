@@ -867,6 +867,10 @@ fn test_unstable_options_tracking_hash() {
     tracked!(saturating_float_casts, Some(true));
     tracked!(share_generics, Some(true));
     tracked!(simulate_remapped_rust_src_base, Some(PathBuf::from("/rustc/abc")));
+    tracked!(skip_compiler_builtins, true);
+    tracked!(skip_core_builtins, true);
+    tracked!(skip_std_builtins, true);
+    tracked!(skip_profiler_builtins, true);
     tracked!(small_data_threshold, Some(16));
     tracked!(split_lto_unit, Some(true));
     tracked!(src_hash_algorithm, Some(SourceFileHashAlgorithm::Sha1));

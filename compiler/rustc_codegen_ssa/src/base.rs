@@ -919,8 +919,11 @@ impl CrateInfo {
                 link
             })
             .collect();
-        // `compiler_builtins` are always placed last to ensure that they're linked correctly.
-        used_crates.extend(compiler_builtins);
+
+        if !tcx.sess.opts.unstable_opts.skip_compiler_builtins {
+            // `compiler_builtins` are always placed last to ensure that they're linked correctly.
+            used_crates.extend(compiler_builtins);
+        }
 
         let crates = tcx.crates(());
         let n_crates = crates.len();
@@ -955,7 +958,8 @@ impl CrateInfo {
 
             let used_crate_source = tcx.used_crate_source(cnum);
             info.used_crate_source.insert(cnum, Arc::clone(used_crate_source));
-            if tcx.is_profiler_runtime(cnum) {
+            if tcx.is_profiler_runtime(cnum) && !tcx.sess.opts.unstable_opts.skip_profiler_builtins
+            {
                 info.profiler_runtime = Some(cnum);
             }
             if tcx.is_no_builtins(cnum) {
